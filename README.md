@@ -1,170 +1,296 @@
-DareAISearch Frontend Developer Assignment
+# DareAISearch Frontend Developer Assignment
 
-This project is my solution for Problem Statement 1 from the DareAISearch Frontend Developer assignment.
+This project is my solution for **Problem Statement 1** from the DareAISearch Frontend Developer assignment.
 
-The idea was to build a data explorer that still behaves properly when the network is slow, requests fail, or a user changes the search quickly.
+The goal was to build a data explorer that remains reliable when the network is slow, requests fail, or users change their search and filters while previous requests are still running.
 
-What the app does
+Live Demo
 
-The explorer works with more than 10,000 records and supports:
+Live Application: https://visibility-dashboard-eight.vercel.app/
 
-Search
+GitHub Repository: https://github.com/nikita22301/visibility-dashboard
 
-Platform and status filters
+The application is deployed on Vercel and the source code is available in the public GitHub repository.
 
-Sorting
+---
 
-Pagination
+## What the app does
 
-Record details
+The Data Explorer works with **12,000 mock records** and supports:
 
-Shareable URLs
+* Search
+* Platform filtering
+* Status filtering
+* Sorting
+* Pagination
+* Record detail pages
+* Shareable URL state
+* Browser back/forward navigation
+* Retry after failed requests
+* Keyboard-accessible controls
+* Screen-reader announcements
+* Virtualized/windowed table rendering
 
-Browser back and forward navigation
+The mock API intentionally simulates real-world network conditions:
 
-Retry after a failed request
+* Random latency between **200ms and 3 seconds**
+* Approximately **10% request failures**
+* Server-side style search, filtering, sorting and pagination
 
-Keyboard navigation
+This makes it possible to test the application beyond the normal happy path.
 
-Screen-reader announcements
+---
 
-The mock API also adds random network delay (200ms to 3 seconds) and fails some requests intentionally. This makes it easier to test how the application behaves in real-world conditions instead of only testing the happy path.
+## Main implementation decisions
 
-Main points I focused on
+### 1. Avoiding stale search results
 
-Avoiding old search results
+Search input is debounced by 350ms so a request is not sent for every keystroke.
 
-Search is debounced so a request is not sent for every key press. When the user changes the search or filters while an earlier request is still running, the older request can be cancelled using AbortSignal. This prevents an older response from replacing the latest results.
+TanStack Query provides an `AbortSignal` to the query function, which is passed through to the API request. When a query becomes obsolete, the previous request can be cancelled.
 
-Keeping the explorer state in the URL
+This helps prevent an older response from replacing the latest search results.
 
-Search, filters, sorting and page are stored in the URL. For example:
+### 2. Keeping explorer state in the URL
 
+Search, filters, sorting and pagination are stored in the URL.
+
+For example:
+
+```text
 /prompts?search=geo&platform=ChatGPT&status=Mentioned&sort=mentions_desc&page=2
+```
 
-Because the state is in the URL, refreshing the page or using the browser back/forward buttons keeps the same explorer view. The URL can also be shared with someone else.
+This means the explorer state can be:
 
-Working with a large list
+* Refreshed without losing the current view
+* Shared through a URL
+* Restored using browser back/forward navigation
 
-The API returns only the records needed for the current page instead of sending the complete dataset to the browser. The table also uses windowed rendering so it does not create unnecessary DOM elements for rows that are not visible.
+### 3. Handling a large dataset
 
-Handling failures
+The mock API contains **12,000 records**, but the browser only receives the records required for the current page.
 
-The application has separate loading, empty and error states. If a request fails, the user sees an error message and a Retry action. The UI does not silently show an old response as if it were the latest data.
+The table also uses windowed rendering so unnecessary DOM rows are not rendered at the same time.
 
-Detail view
+This keeps the explorer lightweight even though the underlying dataset is large.
 
-Each record has its own route, for example:
+### 4. Handling slow and failed requests
 
+The application has separate states for:
+
+* Loading
+* Refreshing
+* Empty results
+* API errors
+* Successful results
+
+When an API request fails, the application shows an error message and a **Retry** action rather than silently treating old data as the latest response.
+
+### 5. Detail view
+
+Every prompt has its own route:
+
+```text
 /prompts/123
+```
 
-This makes the detail page directly accessible by URL. Returning to the explorer keeps the previous search, filters, sorting and page.
+The detail page can therefore be opened directly using a URL.
 
-Tech used
+When returning to the explorer, the previous search, filters, sorting and pagination state are preserved.
 
-React
+---
 
-TypeScript
+## Architecture
 
-Vite
+The project is structured around a few main areas:
 
-TanStack Query
+```text
+src/
+├── components/
+├── pages/
+│   ├── Prompts.tsx
+│   └── PromptDetail.tsx
+├── services/
+│   ├── api.ts
+│   └── localMockApi.ts
+├── explorer.test.ts
+├── types.ts
+└── styles.css
 
-React Router
+api/
+└── prompts.ts
+```
 
-Vitest
+The frontend uses TanStack Query for asynchronous API state and request lifecycle handling.
 
-Testing Library
+The API layer keeps request construction separate from the UI.
 
-Vercel serverless functions
+The mock API is used during local development, while the deployed application uses the Vercel serverless API.
 
-Lucide React
+---
 
-Running the project locally
+## API
 
-Install the dependencies:
+The deployed application uses:
 
-npm install
-
-Start the development server:
-
-npm run dev
-
-For a production build:
-
-npm run build
-
-Run the tests:
-
-npm test
-
-API
-
-The deployed API is available through:
-
+```text
 /api/prompts
+```
 
-It supports search, filtering, sorting and pagination through query parameters such as:
+Supported query parameters include:
 
+```text
 search
 platform
 status
 sort
 page
 pageSize
+```
 
 Example:
 
+```text
 /api/prompts?search=geo&platform=ChatGPT&status=Mentioned&sort=mentions_desc&page=2&pageSize=25
+```
 
 A single record can be requested with:
 
+```text
 /api/prompts?id=123
+```
 
-The API intentionally adds random delay and occasional failures to test the frontend's loading and error handling.
+The API intentionally introduces random latency and occasional failures so that loading, cancellation and error handling can be tested.
 
-Tests
+---
 
-The tests are focused on the parts of the app that are most important for this assignment rather than trying to test every small component.
+## Running locally
 
-They cover things such as:
+Clone the repository and install dependencies:
 
-API query parameters
+```bash
+npm install
+```
 
-Request cancellation
+Start the development server:
 
-Failed API responses
+```bash
+npm run dev
+```
 
-Deployment
+Create a production build:
 
-The frontend can be deployed on Vercel using the free tier. The api folder contains the serverless API used by the deployed application.
+```bash
+npm run build
+```
 
-Demo video
+Run the automated tests:
 
-For the demo, I would show the main explorer flow and then demonstrate a slow/failed request using the browser DevTools. I would also show the URL state, detail page and keyboard navigation.
+```bash
+npm test
+```
 
-Sources and references
+---
 
-I used the official documentation for the main libraries and browser APIs used in the project, including:
+## Testing
 
-React
+The automated tests focus on the behaviour that is most important for this assignment.
 
-TanStack Query
+Current test coverage includes:
 
-React Router
+* API query parameters
+* Search/filter/sort/pagination request construction
+* AbortSignal propagation
+* API failure handling
+* Utility behaviour
 
-Vite
+Current test result:
 
-Vercel
+```text
+Test Files: 2 passed
+Tests:      4 passed
+```
 
-MDN (AbortController and URLSearchParams)
+---
 
-AI usage
+## Deployment
 
-I used ChatGPT during development for help with implementation ideas, debugging and reviewing edge cases. I reviewed and tested the suggestions before adding them to the project.
+The project is deployed using **Vercel**.
 
-As requested in the assignment, the related ChatGPT conversation/share history can be provided along with the repository.
+The `api` directory contains the serverless API used by the deployed application.
 
-Author
+The production build is generated with:
 
-Nikita Jangid
+```bash
+npm run build
+```
+
+---
+
+## Demo
+
+The demo shows:
+
+1. The 12,000-record explorer
+2. Search and filtering
+3. Sorting and pagination
+4. URL state preservation
+5. Opening a record detail page
+6. Returning to the explorer
+7. A simulated API failure
+8. Retry behaviour
+9. Keyboard-accessible interaction
+
+A failed request is intentionally demonstrated because handling unreliable requests is an important part of the assignment.
+
+---
+
+## Sources and references
+
+The implementation was based primarily on the official documentation for the technologies and browser APIs used:
+
+* React documentation
+* TypeScript documentation
+* Vite documentation
+* TanStack Query documentation
+* React Router documentation
+* Vitest documentation
+* Vercel documentation
+* MDN documentation for `AbortController`, `URLSearchParams` and related browser APIs
+
+---
+
+## AI usage
+
+I used ChatGPT during development for:
+
+* Discussing implementation approaches
+* Debugging TypeScript and API issues
+* Reviewing request cancellation and error-handling behaviour
+* Checking edge cases against the assignment requirements
+* Improving the project documentation
+
+I reviewed and tested the generated suggestions before incorporating them into the project.
+
+The relevant ChatGPT conversation/share history will be provided as requested in the assignment.
+
+---
+
+## Trade-offs
+
+A few implementation choices were made to keep the project focused on the assignment requirements:
+
+* The dataset is generated deterministically instead of using an external database.
+* The API is intentionally simulated rather than connected to a production data source.
+* Pagination is used to limit the amount of data transferred for each request.
+* Windowed table rendering is used to avoid unnecessary DOM work.
+* TanStack Query handles request lifecycle and cancellation rather than implementing a custom request manager.
+
+These choices keep the project small enough to run on free hosting while still demonstrating the required frontend behaviour.
+
+---
+
+## Author
+
+**Nikita Jangid**

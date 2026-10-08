@@ -1,56 +1,170 @@
-# DareAI Search Intelligence Dashboard
+DareAISearch Frontend Developer Assignment
 
-Production-style frontend project built to match the DareAISearch Front-End Developer JD.
+This project is my solution for Problem Statement 1 from the DareAISearch Frontend Developer assignment.
 
-## Highlights
-- React + TypeScript + Vite
-- Responsive dashboard UI
-- TanStack Query for async fetching and caching
-- Loading, error, empty and retry states
-- Optimistic prompt tracking
-- Search, filters and deletion
-- Accessible labels and semantic controls
-- Recharts analytics
-- Zustand UI state
-- Vitest / Playwright-ready scripts
-- No API keys required; mock API is included
+The idea was to build a data explorer that still behaves properly when the network is slow, requests fail, or a user changes the search quickly.
 
-## Run
+What the app does
 
-```bash
+The explorer works with more than 10,000 records and supports:
+
+Search
+
+Platform and status filters
+
+Sorting
+
+Pagination
+
+Record details
+
+Shareable URLs
+
+Browser back and forward navigation
+
+Retry after a failed request
+
+Keyboard navigation
+
+Screen-reader announcements
+
+The mock API also adds random network delay (200ms to 3 seconds) and fails some requests intentionally. This makes it easier to test how the application behaves in real-world conditions instead of only testing the happy path.
+
+Main points I focused on
+
+Avoiding old search results
+
+Search is debounced so a request is not sent for every key press. When the user changes the search or filters while an earlier request is still running, the older request can be cancelled using AbortSignal. This prevents an older response from replacing the latest results.
+
+Keeping the explorer state in the URL
+
+Search, filters, sorting and page are stored in the URL. For example:
+
+/prompts?search=geo&platform=ChatGPT&status=Mentioned&sort=mentions_desc&page=2
+
+Because the state is in the URL, refreshing the page or using the browser back/forward buttons keeps the same explorer view. The URL can also be shared with someone else.
+
+Working with a large list
+
+The API returns only the records needed for the current page instead of sending the complete dataset to the browser. The table also uses windowed rendering so it does not create unnecessary DOM elements for rows that are not visible.
+
+Handling failures
+
+The application has separate loading, empty and error states. If a request fails, the user sees an error message and a Retry action. The UI does not silently show an old response as if it were the latest data.
+
+Detail view
+
+Each record has its own route, for example:
+
+/prompts/123
+
+This makes the detail page directly accessible by URL. Returning to the explorer keeps the previous search, filters, sorting and page.
+
+Tech used
+
+React
+
+TypeScript
+
+Vite
+
+TanStack Query
+
+React Router
+
+Vitest
+
+Testing Library
+
+Vercel serverless functions
+
+Lucide React
+
+Running the project locally
+
+Install the dependencies:
+
 npm install
+
+Start the development server:
+
 npm run dev
-```
 
-Open the local Vite URL.
+For a production build:
 
-## Build
-
-```bash
 npm run build
-```
 
-## Project pages
-- Overview
-- Prompts
-- Platforms
-- Competitors
-- Settings
+Run the tests:
 
-## Git
+npm test
 
-```bash
-git init
-git add .
-git commit -m "feat: build AI search visibility dashboard"
-git branch -M main
-git remote add origin YOUR_GITHUB_REPO_URL
-git push -u origin main
-```
+API
 
-## Notes
-The data layer is intentionally isolated in `src/services/api.ts`, so a real backend can replace the mock functions without changing the UI architecture.
+The deployed API is available through:
 
-## Functional interaction coverage
+/api/prompts
 
-The dashboard includes working frontend interactions for competitor search/filtering, adding a competitor through a modal, workspace profile editing, notification and retention controls, security settings, and a responsive mobile navigation drawer. These are local frontend/demo state interactions; connect them to backend endpoints when real persistence/authentication is available.
+It supports search, filtering, sorting and pagination through query parameters such as:
+
+search
+platform
+status
+sort
+page
+pageSize
+
+Example:
+
+/api/prompts?search=geo&platform=ChatGPT&status=Mentioned&sort=mentions_desc&page=2&pageSize=25
+
+A single record can be requested with:
+
+/api/prompts?id=123
+
+The API intentionally adds random delay and occasional failures to test the frontend's loading and error handling.
+
+Tests
+
+The tests are focused on the parts of the app that are most important for this assignment rather than trying to test every small component.
+
+They cover things such as:
+
+API query parameters
+
+Request cancellation
+
+Failed API responses
+
+Deployment
+
+The frontend can be deployed on Vercel using the free tier. The api folder contains the serverless API used by the deployed application.
+
+Demo video
+
+For the demo, I would show the main explorer flow and then demonstrate a slow/failed request using the browser DevTools. I would also show the URL state, detail page and keyboard navigation.
+
+Sources and references
+
+I used the official documentation for the main libraries and browser APIs used in the project, including:
+
+React
+
+TanStack Query
+
+React Router
+
+Vite
+
+Vercel
+
+MDN (AbortController and URLSearchParams)
+
+AI usage
+
+I used ChatGPT during development for help with implementation ideas, debugging and reviewing edge cases. I reviewed and tested the suggestions before adding them to the project.
+
+As requested in the assignment, the related ChatGPT conversation/share history can be provided along with the repository.
+
+Author
+
+Nikita Jangid

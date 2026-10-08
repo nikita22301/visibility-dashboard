@@ -1,0 +1,7 @@
+import {ReactNode} from "react";
+import {AlertTriangle,RefreshCw,Inbox,ArrowUpRight,ArrowDownRight} from "lucide-react";
+export function PageTitle({title,sub,action}:{title:string;sub:string;action?:ReactNode}){return <div className="page-title"><div><h1>{title}</h1><p>{sub}</p></div>{action}</div>}
+export function StatCard({label,value,delta,icon}:{label:string;value:string|number;delta:number;icon:ReactNode}){return <div className="stat"><div className="stat-top"><span>{label}</span><div className="stat-icon">{icon}</div></div><strong>{value}</strong><small className={delta>=0?"up":"down"}>{delta>=0?<ArrowUpRight size={14}/>:<ArrowDownRight size={14}/>} {Math.abs(delta)}% vs last period</small></div>}
+export function Loading(){return <div className="state"><div className="spinner"/><p>Loading intelligence data…</p></div>}
+export function ErrorState({onRetry}:{onRetry:()=>void}){return <div className="state"><AlertTriangle size={34}/><h3>Something went wrong</h3><p>We couldn't load this data. Please try again.</p><button className="primary" onClick={onRetry}><RefreshCw size={16}/> Retry</button></div>}
+export function Empty({text="No results found."}){return <div className="state"><Inbox size={34}/><h3>{text}</h3></div>}

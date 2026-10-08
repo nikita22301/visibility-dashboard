@@ -1,0 +1,4 @@
+export type Platform = "ChatGPT" | "Gemini" | "Perplexity" | "Copilot";
+export type PromptStatus = "Mentioned" | "Not Mentioned" | "Monitoring";
+export type Prompt = { id:number; text:string; platform:Platform; status:PromptStatus; position:number|null; mentions:number; lastChecked:string; };
+export type Dashboard = { visibility:number; visibilityDelta:number; mentions:number; mentionsDelta:number; citations:number; citationsDelta:number; prompts:number; promptsDelta:number; chart:{date:string; score:number; mentions:number}[]; platforms:{name:Platform; score:number; mentions:number; color:string}[]; };
